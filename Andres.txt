@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AventuraQuest | Tu Portal Épico de Juegos de Aventura</title>
+    <!-- Tailwind CSS vía CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Cinzel para títulos épicos e Inter para interfaz legible -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome para iconos temáticos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        epic: ['Cinzel', 'serif'],
+                    },
+                    colors: {
+                        abyss: '#060913',
+                        midnight: '#0c1226',
+                        mystic: '#161332',
+                        arcane: '#2a1b54',
+                        gold: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                        },
+                        emerald: {
+                            400: '#34d399',
+                            500: '#10b981',
+                            600: '#059669',
+                        }
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-glow': 'pulseGlow 3s infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { boxShadow: '0 0 15px rgba(245, 158, 11, 0.3)' },
+                            '50%': { boxShadow: '0 0 30px rgba(245, 158, 11, 0.6)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Estilos personalizados complementarios */
+        body {
+            background-color: #060913;
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+
+        /* Fondo con gradiente místico y textura sutil */
+        .hero-bg {
+            background: radial-gradient(circle at 75% 30%, rgba(76, 29, 149, 0.35) 0%, rgba(12, 18, 38, 0.85) 55%, #060913 100%),
+                        linear-gradient(to bottom, rgba(6, 9, 19, 0.3), #060913);
+        }
+
+        /* Tarjetas con efecto cristal (Glassmorphism) */
+        .glass-card {
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-card:hover {
+            border-color: rgba(245, 158, 11, 0.45);
+            box-shadow: 0 10px 30px -10px rgba(245, 158, 11, 0.25);
+        }
+
+        /* Scrollbar personalizada */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #060913;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2a1b54;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #f59e0b;
+        }
+
+        /* Estilos del Canvas del juego */
+        #dungeonCanvas {
+            background-color: #090d16;
+            border-radius: 0.75rem;
+            box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.8);
+            touch-action: none; /* Evita scroll al deslizar en el canvas */
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-amber-500 selection:text-abyss">
+
+    <!-- ==================== 1. BARRA DE NAVEGACIÓN ==================== -->
+    <header class="sticky top-0 z-50 glass-card border-b border-slate-800/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20 gap-4">
+                
+                <!-- Logo -->
+                <a href="#" class="flex items-center gap-3 group shrink-0">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 via-amber-500 to-purple-700 flex items-center justify-center shadow-lg shadow-amber-500/20 group-hover:scale-105 transition-transform">
+                        <i class="fa-solid fa-compass text-abyss text-xl"></i>
+                    </div>
+                    <div>
+                        <span class="font-epic font-bold text-xl sm:text-2xl tracking-wider bg-gradient-to-r from-amber-300 via-amber-400 to-emerald-400 bg-clip-text text-transparent">
+                            AventuraQuest
+                        </span>
+                        <span class="block text-[10px] uppercase tracking-widest text-slate-400 -mt-1">Reino de Exploradores</span>
+                    </div>
+                </a>
+
+                <!-- Enlaces de Navegación (Desktop) -->
+                <nav class="hidden md:flex items-center space-x-8 text-sm font-medium">
+                    <a href="#catalogo" class="text-slate-300 hover:text-amber-400 transition-colors flex items-center gap-1.5">
+                        <i class="fa-solid fa-map text-amber-500/70"></i> Explorar
+                    </a>
+                    <a href="#jugables" class="text-slate-300 hover:text-emerald-400 transition-colors flex items-center gap-1.5">
+                        <i class="fa-solid fa-gamepad text-emerald-500/70"></i> Juegos Jugables
+                    </a>
+                    <a href="#ranking" class="text-slate-300 hover:text-amber-400 transition-colors flex items-center gap-1.5">
+                        <i class="fa-solid fa-trophy text-amber-500/70"></i> Top Ranking
+                    </a>
+                    <a href="#comunidad" class="text-slate-300 hover:text-purple-400 transition-colors flex items-center gap-1.5">
+                        <i class="fa-solid fa-users text-purple-400/70"></i> Comunidad
+                    </a>
+                </nav>
+
+                <!-- Buscador en tiempo real -->
+                <div class="relative flex-1 max-w-xs sm:max-w-sm">
+                    <div class="relative">
+                        <input 
+                            type="text" 
+                            id="searchInput" 
+                            placeholder="Buscar aventuras, géneros..." 
+                            class="w-full bg-slate-900/90 text-sm text-slate-200 placeholder-slate-400 pl-10 pr-8 py-2.5 rounded-xl border border-slate-700/80 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all"
+                        >
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-sm"></i>
+                        <button id="clearSearchBtn" class="hidden absolute right-3 top-2.5 text-slate-400 hover:text-white text-sm" title="Limpiar búsqueda">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Botón menú móvil -->
+                <button id="mobileMenuBtn" class="md:hidden p-2.5 rounded-xl bg-slate-800/80 text-slate-300 hover:text-amber-400">
+                    <i class="fa-solid fa-bars text-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Menú Desplegable Móvil -->
+        <div id="mobileMenu" class="hidden md:hidden bg-midnight/95 border-b border-slate-800 px-4 pt-2 pb-5 space-y-2">
+            <a href="#catalogo" class="block px-3 py-2.5 rounded-lg text-slate-200 hover:bg-slate-800 hover:text-amber-400">
+                <i class="fa-solid fa-map w-6 text-amber-400"></i> Explorar Catálogo
+            </a>
+            <a href="#jugables" class="block px-3 py-2.5 rounded-lg text-slate-200 hover:bg-slate-800 hover:text-emerald-400">
+                <i class="fa-solid fa-gamepad w-6 text-emerald-400"></i> Juegos Jugables Ahora
+            </a>
+            <a href="#ranking" class="block px-3 py-2.5 rounded-lg text-slate-200 hover:bg-slate-800 hover:text-amber-400">
+                <i class="fa-solid fa-trophy w-6 text-amber-400"></i> Top Ranking
+            </a>
+            <a href="#comunidad" class="block px-3 py-2.5 rounded-lg text-slate-200 hover:bg-slate-800 hover:text-purple-400">
+                <i class="fa-solid fa-users w-6 text-purple-400"></i> Comunidad
+            </a>
+        </div>
+    </header>
+
+    <!-- ==================== 2. SECCIÓN HERO DESTACADA ==================== -->
+    <section class="relative hero-bg pt-12 pb-20 lg:py-24 overflow-hidden border-b border-slate-800/60">
+        <!-- Elementos decorativos de fondo -->
+        <div class="absolute top-10 left-10 w-72 h-72 bg-purple-600/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute bottom-10 right-10 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                
+                <!-- Columna Izquierda: Información del Juego Principal -->
+                <div class="lg:col-span-7 space-y-6">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-semibold uppercase tracking-wider">
+                        <i class="fa-solid fa-crown text-amber-400"></i> Destacado de la Temporada
+                    </div>
+
+                    <h1 class="font-epic text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight">
+                        El Secreto del <span class="bg-gradient-to-r from-amber-300 via-amber-500 to-emerald-400 bg-clip-text text-transparent">Templo Perdido</span>
+                    </h1>
+
+                    <!-- Etiquetas de género -->
+                    <div class="flex flex-wrap gap-2">
+                        <span class="px-3 py-1 rounded-lg bg-purple-950/80 border border-purple-500/30 text-purple-300 text-xs font-medium">
+                            <i class="fa-solid fa-hat-wizard mr-1"></i> Fantasía Épica
+                        </span>
+                        <span class="px-3 py-1 rounded-lg bg-emerald-950/80 border border-emerald-500/30 text-emerald-300 text-xs font-medium">
+                            <i class="fa-solid fa-compass mr-1"></i> Exploración
+                        </span>
+                        <span class="px-3 py-1 rounded-lg bg-blue-950/80 border border-blue-500/30 text-blue-300 text-xs font-medium">
+                            <i class="fa-solid fa-puzzle-piece mr-1"></i> Acertijos Ancestrales
+                        </span>
+                        <span class="px-3 py-1 rounded-lg bg-slate-800/80 border border-slate-600/40 text-amber-300 text-xs font-semibold">
+                            <i class="fa-solid fa-star text-amber-400 mr-1"></i> 4.9 / 5.0
+                        </span>
+                    </div>
+
+                    <p class="text-slate-300 text-base sm:text-lg leading-relaxed max-w-2xl">
+                        Adéntrate en las profundidades de la selva de Aethelgard, descifra runas olvidadas por los dioses antiguos y sobrevive a guardianes de piedra para reclamar la Reliquia del Alba antes de que el eclipse consuma el reino.
+                    </p>
+
+                    <!-- Botones de Acción -->
+                    <div class="flex flex-wrap items-center gap-4 pt-2">
+                        <a href="#jugables" class="px-7 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-abyss font-bold text-sm sm:text-base shadow-lg shadow-amber-500/25 transition-all transform hover:-translate-y-0.5 flex items-center gap-2">
+                            <i class="fa-solid fa-play"></i> Jugar Mini-Aventuras Ahora
+                        </a>
+                        <button onclick="openFeaturedModal()" class="px-6 py-3.5 rounded-xl glass-card hover:bg-slate-800/90 text-white font-semibold text-sm sm:text-base border border-slate-700 transition-all flex items-center gap-2">
+                            <i class="fa-solid fa-book-open text-emerald-400"></i> Ver Historia y Ficha
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Columna Derecha: Arte Visual Ilustrativo SVG / Tarjeta 3D -->
+                <div class="lg:col-span-5">
+                    <div class="relative rounded-2xl p-1 bg-gradient-to-br from-amber-400/50 via-purple-600/40 to-emerald-500/50 shadow-2xl animate-float">
+                        <div class="bg-midnight rounded-xl overflow-hidden relative aspect-[4/3] flex flex-col justify-between p-6 border border-white/10">
+                            <!-- Ilustración SVG Templo Perdido -->
+                            <svg viewBox="0 0 400 300" class="absolute inset-0 w-full h-full object-cover opacity-90" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                    <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#1e1b4b"/>
+                                        <stop offset="60%" stop-color="#311042"/>
+                                        <stop offset="100%" stop-color="#064e3b"/>
+                                    </linearGradient>
+                                    <radialGradient id="moonGlow" cx="50%" cy="30%" r="40%">
+                                        <stop offset="0%" stop-color="#fbbf24" stop-opacity="0.8"/>
+                                        <stop offset="50%" stop-color="#f59e0b" stop-opacity="0.2"/>
+                                        <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+                                    </radialGradient>
+                                </defs>
+                                <rect width="400" height="300" fill="url(#skyGrad)"/>
+                                <circle cx="200" cy="85" r="95" fill="url(#moonGlow)"/>
+                                <circle cx="200" cy="85" r="28" fill="#fef3c7"/>
+                                <!-- Montañas lejanas -->
+                                <polygon points="0,240 90,120 190,240" fill="#111827" opacity="0.8"/>
+                                <polygon points="150,240 280,100 400,240" fill="#0f172a" opacity="0.9"/>
+                                <!-- Pirámide / Templo Perdido -->
+                                <polygon points="110,250 200,130 290,250" fill="#1e293b" stroke="#f59e0b" stroke-width="1.5"/>
+                                <polygon points="145,250 200,165 255,250" fill="#0f172a"/>
+                                <!-- Entrada brillante del templo -->
+                                <rect x="188" y="210" width="24" height="40" rx="12" fill="#10b981"/>
+                                <rect x="193" y="215" width="14" height="35" rx="7" fill="#a7f3d0"/>
+                                <!-- Escalinata -->
+                                <line x1="175" y1="250" x2="225" y2="250" stroke="#fbbf24" stroke-width="3"/>
+                                <line x1="165" y1="258" x2="235" y2="258" stroke="#f59e0b" stroke-width="3"/>
+                                <line x1="155" y1="266" x2="245" y2="266" stroke="#d97706" stroke-width="3"/>
+                                <!-- Vegetación primer plano -->
+                                <path d="M0,300 Q40,220 90,300 Z" fill="#022c22"/>
+                                <path d="M310,300 Q360,210 400,300 Z" fill="#022c22"/>
+                            </svg>
+
+                            <div class="relative z-10 flex justify-between items-start">
+                                <span class="px-3 py-1 rounded-md bg-abyss/80 backdrop-blur-md text-xs font-bold text-emerald-400 border border-emerald-500/30">
+                                    <i class="fa-solid fa-fire text-amber-400 mr-1"></i> +18,400 Jugadores Hoy
+                                </span>
+                                <span class="w-9 h-9 rounded-full bg-abyss/80 flex items-center justify-center text-amber-400 border border-amber-500/30">
+                                    <i class="fa-solid fa-gem"></i>
+                                </span>
+                            </div>
+
+                            <div class="relative z-10 bg-abyss/85 backdrop-blur-md p-3.5 rounded-xl border border-white/10 flex items-center justify-between">
+                                <div>
+                                    <p class="text-xs text-slate-400">Recompensa del Gremio</p>
+                                    <p class="text-sm font-bold text-amber-300">Amuleto Solar + 500 XP</p>
+                                </div>
+                                <span class="text-xs px-2.5 py-1 rounded bg-emerald-500/20 text-emerald-300 font-semibold">
+                                    Edición Legendaria
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== 3. JUEGOS INTERACTIVOS (JUEGA AHORA) ==================== -->
+    <section id="jugables" class="py-20 bg-gradient-to-b from-abyss via-midnight to-abyss border-b border-slate-800/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <!-- Cabecera de sección -->
+            <div class="text-center max-w-3xl mx-auto mb-14 space-y-3">
+                <span class="text-emerald-400 font-semibold text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-wand-sparkles"></i> Experiencia Directa en el Navegador
+                </span>
+                <h2 class="font-epic text-3xl sm:text-4xl font-bold text-white">
+                    Juegos Interactivos <span class="text-amber-400">(Juega Ahora)</span>
+                </h2>
+                <p class="text-slate-400 text-sm sm:text-base">
+                    Pon a prueba tu ingenio y reflejos sin descargas. Toma decisiones críticas en un RPG narrativo o explora una mazmorra llena de trampas y tesoros.
+                </p>
+            </div>
+
+            <!-- Contenedor de los 2 Mini-Juegos -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+
+                <!-- MINI-JUEGO 1: RPG CONVERSACIONAL "LAS CRÓNICAS DE ELDORIA" -->
+                <div class="glass-card rounded-2xl p-6 sm:p-8 flex flex-col justify-between border border-purple-500/30 shadow-xl">
+                    <div>
+                        <!-- Header del RPG -->
+                        <div class="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-slate-700/70">
+                            <div>
+                                <span class="text-[11px] uppercase tracking-wider text-purple-400 font-bold">RPG Conversacional</span>
+                                <h3 class="font-epic text-xl sm:text-2xl font-bold text-white">Las Crónicas de Eldoria</h3>
+                            </div>
+                            <button onclick="resetRPG()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 hover:text-amber-400 border border-slate-600 transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-rotate-right"></i> Reiniciar
+                            </button>
+                        </div>
+
+                        <!-- Barra de Estado: Salud, Oro e Inventario -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 my-4 bg-abyss/70 p-3.5 rounded-xl border border-slate-800">
+                            <div>
+                                <div class="flex justify-between text-xs font-semibold mb-1">
+                                    <span class="text-rose-400"><i class="fa-solid fa-heart mr-1"></i> Salud</span>
+                                    <span id="rpgHpText" class="text-white">100 / 100</span>
+                                </div>
+                                <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                                    <div id="rpgHpBar" class="bg-gradient-to-r from-rose-500 to-emerald-400 h-2.5 rounded-full transition-all duration-300" style="width: 100%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-xs font-semibold text-amber-400 mb-1">
+                                    <i class="fa-solid fa-sack-dollar mr-1"></i> Inventario
+                                </div>
+                                <div id="rpgInventory" class="flex flex-wrap gap-1.5 text-xs text-slate-300">
+                                    <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">Antorcha</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Escena / Narrativa -->
+                        <div class="bg-slate-900/90 rounded-xl p-5 border border-slate-800 min-h-[160px] flex flex-col justify-center mb-5 relative overflow-hidden">
+                            <div id="rpgEndingBadge" class="hidden mb-2 inline-block w-fit px-2.5 py-0.5 rounded text-xs font-bold uppercase tracking-wider"></div>
+                            <p id="rpgStoryText" class="text-slate-200 text-sm sm:text-base leading-relaxed">
+                                Cargando crónica...
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Opciones de decisión -->
+                    <div id="rpgChoices" class="space-y-2.5">
+                        <!-- Botones generados por JS -->
+                    </div>
+                </div>
+
+                <!-- MINI-JUEGO 2: EXPLORACIÓN DE MAZMORRAS EN CANVAS 2D -->
+                <div class="glass-card rounded-2xl p-6 sm:p-8 flex flex-col justify-between border border-emerald-500/30 shadow-xl">
+                    <div>
+                        <!-- Header del Juego Canvas -->
+                        <div class="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-slate-700/70">
+                            <div>
+                                <span class="text-[11px] uppercase tracking-wider text-emerald-400 font-bold">Acción y Mazmorras 2D</span>
+                                <h3 class="font-epic text-xl sm:text-2xl font-bold text-white">Cripta del Guardián</h3>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span class="px-3 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-bold">
+                                    <i class="fa-solid fa-gem mr-1"></i> <span id="dungeonScore">0</span> / <span id="dungeonTotalGems">5</span>
+                                </span>
+                                <span class="px-3 py-1 rounded-lg bg-purple-500/15 border border-purple-500/30 text-purple-300 text-xs font-bold">
+                                    Nivel <span id="dungeonLevel">1</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Instrucciones rápidas -->
+                        <div class="flex items-center justify-between text-xs text-slate-400 my-3">
+                            <span>Usa <strong class="text-slate-200">WASD / Flechas</strong> o los botones táctiles.</span>
+                            <span id="dungeonStatusMsg" class="text-emerald-400 font-medium">¡Recoge las gemas y evita las trampas!</span>
+                        </div>
+
+                        <!-- Contenedor Responsivo del Canvas -->
+                        <div id="canvasContainer" class="w-full relative aspect-[16/10] bg-abyss rounded-xl border border-slate-700/80 overflow-hidden">
+                            <canvas id="dungeonCanvas"></canvas>
+                            
+                            <!-- Overlay de Victoria / Derrota dentro del juego -->
+                            <div id="dungeonOverlay" class="hidden absolute inset-0 bg-abyss/85 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center z-10">
+                                <div id="dungeonOverlayIcon" class="text-4xl mb-2">🏆</div>
+                                <h4 id="dungeonOverlayTitle" class="font-epic text-2xl font-bold text-amber-400 mb-1">¡Nivel Completado!</h4>
+                                <p id="dungeonOverlayDesc" class="text-sm text-slate-300 mb-4 max-w-xs">Has recuperado todos los tesoros de la cámara.</p>
+                                <button id="dungeonOverlayBtn" onclick="nextOrRestartDungeon()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-abyss font-bold text-sm shadow-lg transition">
+                                    Siguiente Cámara
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Controles Táctiles / Botones Inferiores -->
+                    <div class="mt-4 pt-2 flex items-center justify-between gap-4">
+                        <button onclick="initDungeonLevel(1)" class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 border border-slate-600 transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-rotate-left"></i> Reiniciar
+                        </button>
+
+                        <!-- Cruceta D-Pad para móviles y clics -->
+                        <div class="flex items-center gap-2">
+                            <button onclick="movePlayer(-1, 0)" aria-label="Izquierda" class="w-11 h-11 rounded-xl bg-slate-800 active:bg-amber-500 active:text-abyss hover:bg-slate-700 text-white flex items-center justify-center border border-slate-600 shadow transition">
+                                <i class="fa-solid fa-arrow-left"></i>
+                            </button>
+                            <div class="flex flex-col gap-1.5">
+                                <button onclick="movePlayer(0, -1)" aria-label="Arriba" class="w-11 h-10 rounded-xl bg-slate-800 active:bg-amber-500 active:text-abyss hover:bg-slate-700 text-white flex items-center justify-center border border-slate-600 shadow transition">
+                                    <i class="fa-solid fa-arrow-up"></i>
+                                </button>
+                                <button onclick="movePlayer(0, 1)" aria-label="Abajo" class="w-11 h-10 rounded-xl bg-slate-800 active:bg-amber-500 active:text-abyss hover:bg-slate-700 text-white flex items-center justify-center border border-slate-600 shadow transition">
+                                    <i class="fa-solid fa-arrow-down"></i>
+                                </button>
+                            </div>
+                            <button onclick="movePlayer(1, 0)" aria-label="Derecha" class="w-11 h-11 rounded-xl bg-slate-800 active:bg-amber-500 active:text-abyss hover:bg-slate-700 text-white flex items-center justify-center border border-slate-600 shadow transition">
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== 4. CATÁLOGO FILTRABLE POR SUBGÉNERO ==================== -->
+    <section id="catalogo" class="py-20 bg-abyss">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <!-- Encabezado y Filtros -->
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+                <div>
+                    <span class="text-amber-400 font-semibold text-xs uppercase tracking-widest">Biblioteca del Explorador</span>
+                    <h2 class="font-epic text-3xl sm:text-4xl font-bold text-white mt-1">
+                        Catálogo de Aventuras
+                    </h2>
+                </div>
+
+                <!-- Botones de Filtro por Subgénero -->
+                <div id="filterButtons" class="flex flex-wrap gap-2">
+                    <button data-genre="Todos" class="filter-btn active px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-amber-500 text-abyss shadow-md shadow-amber-500/20 transition">
+                        Todos
+                    </button>
+                    <button data-genre="Fantasía" class="filter-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-900 text-slate-300 hover:text-white border border-slate-700 transition">
+                        <i class="fa-solid fa-dragon mr-1 text-purple-400"></i> Fantasía
+                    </button>
+                    <button data-genre="Exploración" class="filter-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-900 text-slate-300 hover:text-white border border-slate-700 transition">
+                        <i class="fa-solid fa-compass mr-1 text-emerald-400"></i> Exploración
+                    </button>
+                    <button data-genre="Supervivencia" class="filter-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-900 text-slate-300 hover:text-white border border-slate-700 transition">
+                        <i class="fa-solid fa-fire-flame-curved mr-1 text-orange-400"></i> Supervivencia
+                    </button>
+                    <button data-genre="Misterio" class="filter-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-900 text-slate-300 hover:text-white border border-slate-700 transition">
+                        <i class="fa-solid fa-magnifying-glass mr-1 text-blue-400"></i> Misterio
+                    </button>
+                </div>
+            </div>
+
+            <!-- Grid de Tarjetas de Juegos -->
+            <div id="gamesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Renderizado dinámicamente mediante JS -->
+            </div>
+
+            <!-- Estado Vacío (si la búsqueda no arroja resultados) -->
+            <div id="emptyState" class="hidden text-center py-16 glass-card rounded-2xl">
+                <i class="fa-solid fa-map-location-dot text-4xl text-slate-600 mb-3"></i>
+                <h3 class="font-epic text-xl font-bold text-slate-300">No se hallaron tierras con ese nombre</h3>
+                <p class="text-slate-400 text-sm mt-1">Intenta buscar otro título o cambia el filtro de subgénero.</p>
+                <button onclick="resetFilters()" class="mt-4 px-5 py-2 rounded-xl bg-amber-500 text-abyss font-semibold text-sm">
+                    Mostrar todas las aventuras
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== SECCIÓN EXTRA: TOP RANKING Y COMUNIDAD ==================== -->
+    <section id="ranking" class="py-16 bg-midnight/60 border-t border-slate-800/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                <!-- Top Ranking -->
+                <div class="lg:col-span-7 glass-card rounded-2xl p-6 sm:p-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="font-epic text-2xl font-bold text-white flex items-center gap-2.5">
+                            <i class="fa-solid fa-trophy text-amber-400"></i> Salón de la Fama
+                        </h3>
+                        <span class="text-xs text-slate-400">Actualizado hoy</span>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between p-3.5 rounded-xl bg-gradient-to-r from-amber-500/15 to-transparent border border-amber-500/30">
+                            <div class="flex items-center gap-3.5">
+                                <span class="w-8 h-8 rounded-lg bg-amber-400 text-abyss font-extrabold flex items-center justify-center text-sm">#1</span>
+                                <div>
+                                    <p class="font-bold text-white text-sm sm:text-base">El Secreto del Templo Perdido</p>
+                                    <p class="text-xs text-slate-400">Fantasía • Exploración</p>
+                                </div>
+                            </div>
+                            <span class="text-amber-400 font-bold text-sm"><i class="fa-solid fa-star mr-1"></i>4.9</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3.5 rounded-xl bg-slate-900/70 border border-slate-800">
+                            <div class="flex items-center gap-3.5">
+                                <span class="w-8 h-8 rounded-lg bg-slate-700 text-slate-200 font-bold flex items-center justify-center text-sm">#2</span>
+                                <div>
+                                    <p class="font-bold text-white text-sm sm:text-base">Sombras de Ravenwood</p>
+                                    <p class="text-xs text-slate-400">Misterio • Investigación</p>
+                                </div>
+                            </div>
+                            <span class="text-amber-400 font-bold text-sm"><i class="fa-solid fa-star mr-1"></i>4.8</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3.5 rounded-xl bg-slate-900/70 border border-slate-800">
+                            <div class="flex items-center gap-3.5">
+                                <span class="w-8 h-8 rounded-lg bg-amber-900/60 text-amber-200 font-bold flex items-center justify-center text-sm">#3</span>
+                                <div>
+                                    <p class="font-bold text-white text-sm sm:text-base">Cumbre Helada: Expedición Cero</p>
+                                    <p class="text-xs text-slate-400">Supervivencia • Mundo Abierto</p>
+                                </div>
+                            </div>
+                            <span class="text-amber-400 font-bold text-sm"><i class="fa-solid fa-star mr-1"></i>4.7</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comunidad -->
+                <div id="comunidad" class="lg:col-span-5 glass-card rounded-2xl p-6 sm:p-8 flex flex-col justify-between bg-gradient-to-br from-mystic/60 to-midnight/80 border border-purple-500/25">
+                    <div>
+                        <span class="px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 text-xs font-semibold">Gremio Oficial</span>
+                        <h3 class="font-epic text-2xl font-bold text-white mt-3">Únete a la Hermandad de Aventureros</h3>
+                        <p class="text-slate-300 text-sm mt-2 leading-relaxed">
+                            Comparte mapas secretos, guías de finales alternativos y participa en torneos semanales de exploración de mazmorras.
+                        </p>
+                    </div>
+                    <div class="mt-6 pt-6 border-t border-slate-700/60 flex items-center justify-between">
+                        <div>
+                            <p class="text-xl font-bold text-emerald-400">42,890</p>
+                            <p class="text-xs text-slate-400">Exploradores activos</p>
+                        </div>
+                        <a href="#jugables" class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-sm transition shadow-lg shadow-purple-600/25">
+                            Iniciar Misión
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== MODAL DE DETALLES DEL JUEGO ==================== -->
+    <div id="gameModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-abyss/80 backdrop-blur-md">
+        <div class="glass-card bg-midnight border border-amber-500/30 rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl transform transition-all">
+            <!-- Cabecera visual del Modal -->
+            <div id="modalBanner" class="h-44 relative p-6 flex flex-col justify-between bg-gradient-to-r from-purple-900 via-indigo-950 to-emerald-950">
+                <div class="flex justify-between items-start">
+                    <span id="modalGenreBadge" class="px-3 py-1 rounded-lg bg-abyss/80 text-amber-400 text-xs font-bold uppercase tracking-wider border border-amber-500/30">
+                        Género
+                    </span>
+                    <button onclick="closeGameModal()" class="w-9 h-9 rounded-full bg-abyss/80 hover:bg-rose-500/80 text-white flex items-center justify-center transition">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <div>
+                    <h3 id="modalTitle" class="font-epic text-2xl sm:text-3xl font-bold text-white drop-shadow">Título del Juego</h3>
+                </div>
+            </div>
+
+            <!-- Cuerpo del Modal -->
+            <div class="p-6 sm:p-8 space-y-5">
+                <div class="flex flex-wrap gap-4 text-xs sm:text-sm">
+                    <div class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-amber-400 font-semibold">
+                        <i class="fa-solid fa-star mr-1"></i> Calificación: <span id="modalRating" class="text-white">4.8</span>/5
+                    </div>
+                    <div class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-emerald-400 font-semibold">
+                        <i class="fa-solid fa-shield-halved mr-1"></i> Dificultad: <span id="modalDifficulty" class="text-white">Media</span>
+                    </div>
+                    <div class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-purple-400 font-semibold">
+                        <i class="fa-solid fa-clock mr-1"></i> Duración: <span id="modalDuration" class="text-white">12h</span>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-xs uppercase tracking-wider text-slate-400 font-bold mb-1.5">Sinopsis de la Aventura</h4>
+                    <p id="modalDescription" class="text-slate-300 text-sm sm:text-base leading-relaxed">
+                        Descripción completa del juego...
+                    </p>
+                </div>
+
+                <div class="bg-abyss/70 p-4 rounded-xl border border-slate-800">
+                    <h4 class="text-xs uppercase tracking-wider text-amber-400 font-bold mb-2">Características Destacadas</h4>
+                    <ul id="modalFeatures" class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs sm:text-sm text-slate-300">
+                        <!-- Lista generada dinámicamente -->
+                    </ul>
+                </div>
+
+                <div class="flex flex-wrap justify-end gap-3 pt-2">
+                    <button onclick="closeGameModal()" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-semibold transition">
+                        Cerrar
+                    </button>
+                    <a href="#jugables" onclick="closeGameModal()" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-abyss text-sm font-bold shadow-lg transition flex items-center gap-2">
+                        <i class="fa-solid fa-gamepad"></i> Probar Mini-Juegos
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 5. FOOTER ELEGANTE ==================== -->
+    <footer class="bg-abyss border-t border-slate-800/90 pt-14 pb-8 text-slate-400">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-10 pb-10 border-b border-slate-800/80">
+                <div class="md:col-span-2 space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-purple-700 flex items-center justify-center">
+                            <i class="fa-solid fa-compass text-abyss text-lg"></i>
+                        </div>
+                        <span class="font-epic font-bold text-xl text-white">AventuraQuest</span>
+                    </div>
+                    <p class="text-sm text-slate-400 max-w-md leading-relaxed">
+                        El santuario digital definitivo para los amantes de la exploración, los misterios antiguos y las grandes epopeyas interactivas. Forja tu propia leyenda.
+                    </p>
+                    <div class="flex gap-3 pt-1">
+                        <a href="#comunidad" aria-label="Discord" class="w-9 h-9 rounded-lg bg-slate-900 hover:bg-purple-600 text-slate-300 hover:text-white flex items-center justify-center border border-slate-800 transition">
+                            <i class="fa-brands fa-discord"></i>
+                        </a>
+                        <a href="#comunidad" aria-label="Twitch" class="w-9 h-9 rounded-lg bg-slate-900 hover:bg-purple-600 text-slate-300 hover:text-white flex items-center justify-center border border-slate-800 transition">
+                            <i class="fa-brands fa-twitch"></i>
+                        </a>
+                        <a href="#comunidad" aria-label="YouTube" class="w-9 h-9 rounded-lg bg-slate-900 hover:bg-amber-500 text-slate-300 hover:text-abyss flex items-center justify-center border border-slate-800 transition">
+                            <i class="fa-brands fa-youtube"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="font-epic text-sm font-bold text-white uppercase tracking-wider mb-4">Navegación</h4>
+                    <ul class="space-y-2.5 text-sm">
+                        <li><a href="#catalogo" class="hover:text-amber-400 transition">Catálogo Completo</a></li>
+                        <li><a href="#jugables" class="hover:text-emerald-400 transition">Juegos en el Navegador</a></li>
+                        <li><a href="#ranking" class="hover:text-amber-400 transition">Top Ranking Global</a></li>
+                        <li><a href="#comunidad" class="hover:text-purple-400 transition">Gremio de Exploradores</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-epic text-sm font-bold text-white uppercase tracking-wider mb-4">Subgéneros</h4>
+                    <ul class="space-y-2.5 text-sm">
+                        <li><button onclick="quickFilter('Fantasía')" class="hover:text-purple-400 transition">Fantasía Épica</button></li>
+                        <li><button onclick="quickFilter('Exploración')" class="hover:text-emerald-400 transition">Exploración y Ruinas</button></li>
+                        <li><button onclick="quickFilter('Supervivencia')" class="hover:text-orange-400 transition">Supervivencia Extrema</button></li>
+                        <li><button onclick="quickFilter('Misterio')" class="hover:text-blue-400 transition">Misterio y Acertijos</button></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
+                <p>&copy; 2026 AventuraQuest. Todos los derechos reservados en este reino y los venideros.</p>
+                <p>Diseñado con pasión para aventureros intrépidos.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ==================== LÓGICA JAVASCRIPT ==================== -->
+    <script>
+        /* ----------------------------------------------------------------------
+           1. DATOS DEL CATÁLOGO DE JUEGOS Y MODAL
+        ---------------------------------------------------------------------- */
+        const gamesCatalog = [
+            {
+                id: 1,
+                title: "El Secreto del Templo Perdido",
+                genre: "Fantasía",
+                rating: "4.9",
+                difficulty: "Media",
+                duration: "18 Horas",
+                icon: "fa-gopuram",
+                gradient: "from-amber-600/40 via-purple-900/60 to-slate-900",
+                shortDesc: "Descifra runas ancestrales en una selva olvidada y reclama la Reliquia del Alba.",
+                fullDesc: "Adéntrate en las profundidades de la selva de Aethelgard. Como último heredero de los Cartógrafos Reales, deberás resolver complejos mecanismos de piedra, evitar trampas mortales y enfrentarte a los Guardianes de Obsidiana antes de que el eclipse eterno consuma el continente.",
+                features: ["Mundos interconectados sin pantallas de carga", "Sistema dinámico de acertijos rúnicos", "3 finales distintos según tus decisiones", "Banda sonora orquestal inmersiva"]
+            },
+            {
+                id: 2,
+                title: "Sombras de Ravenwood",
+                genre: "Misterio",
+                rating: "4.8",
+                difficulty: "Alta",
+                duration: "14 Horas",
+                icon: "fa-crow",
+                gradient: "from-blue-900/60 via-purple-950 to-slate-900",
+                shortDesc: "Investiga la desaparición de un pueblo entero envuelto en una niebla sobrenatural.",
+                fullDesc: "Año 1894. Llegas a Ravenwood con solo un diario cifrado y una linterna de aceite. Interroga a los pocos testigos que quedan, reconstruye escenas del pasado y descubre qué antigua entidad despierta bajo la torre del reloj cada medianoche.",
+                features: ["Deducción libre con tablero de pistas", "Ciclo día/noche que altera comportamientos", "Narrativa ramificada de suspense", "Sin combate: puro ingenio y sigilo"]
+            },
+            {
+                id: 3,
+                title: "Cumbre Helada: Expedición Cero",
+                genre: "Supervivencia",
+                rating: "4.7",
+                difficulty: "Extrema",
+                duration: "25 Horas",
+                icon: "fa-mountain",
+                gradient: "from-cyan-800/50 via-blue-950 to-slate-900",
+                shortDesc: "Sobrevive a ventiscas implacables mientras escalas la cordillera más peligrosa del norte.",
+                fullDesc: "Tras el accidente de tu dirigible en los Picos de Escarcha, cada decisión cuenta. Gestiona tu temperatura corporal, fabrica herramientas con recursos escasos, refúgiate en cuevas de hielo y encuentra la estación meteorológica abandonada para pedir rescate.",
+                features: ["Simulación realista de clima y frío", "Sistema profundo de artesanía y refugios", "Fauna salvaje con IA territorial", "Modo historia y modo supervivencia infinita"]
+            },
+            {
+                id: 4,
+                title: "Archipiélago de los Vientos",
+                genre: "Exploración",
+                rating: "4.8",
+                difficulty: "Baja",
+                duration: "20 Horas",
+                icon: "fa-sailboat",
+                gradient: "from-emerald-700/50 via-teal-950 to-slate-900",
+                shortDesc: "Navega entre islas flotantes en tu barco aéreo y cartografía civilizaciones celestiales.",
+                fullDesc: "Toma el timón de tu propio navío velero impulsado por cristales de éter. Explora decenas de islas suspendidas en las nubes, comercia con tribus nómadas, descubre santuarios ocultos y desvela por qué el océano desapareció siglos atrás.",
+                features: ["Personalización completa de tu barco aéreo", "Exploración libre sin límites de tiempo", "Fotografía y catalogación de fauna mística", "Clima dinámico con tormentas eléctricas"]
+            },
+            {
+                id: 5,
+                title: "La Forja del Dragón Carmesí",
+                genre: "Fantasía",
+                rating: "4.6",
+                difficulty: "Alta",
+                duration: "22 Horas",
+                icon: "fa-dragon",
+                gradient: "from-rose-800/50 via-amber-950 to-slate-900",
+                shortDesc: "Reúne los fragmentos de la espada legendaria para sellar el abismo volcánico.",
+                fullDesc: "Los antiguos dragones han despertado de su letargo milenario. Viaja por reinos en guerra, forja alianzas entre humanos y elfos de las profundidades, y domina la magia rúnica para templar un arma capaz de perforar escamas de magma.",
+                features: ["Combate táctico con magia elemental", "Forja de armas personalizadas", "Jefes colosales con mecánicas únicas", "Misiones secundarias con impacto mundial"]
+            },
+            {
+                id: 6,
+                title: "Ecos en el Abismo Marino",
+                genre: "Exploración",
+                rating: "4.7",
+                difficulty: "Media",
+                duration: "11 Horas",
+                icon: "fa-water",
+                gradient: "from-indigo-800/50 via-cyan-950 to-slate-900",
+                shortDesc: "Desciende a 4,000 metros de profundidad y descubre ruinas bioluminiscentes.",
+                fullDesc: "Pilota un batiscafo de exploración avanzada en la Fosa de Mariana. Utiliza tu sonar para mapear cavernas submarinas, recolecta muestras biológicas desconocidas y descubre una metrópolis sumergida que emite señales de radio.",
+                features: ["Mecánicas de sonar y navegación submarina", "Ecosistema bioluminiscente espectacular", "Mejoras progresivas para el submarino", "Atmósfera relajante pero llena de asombro"]
+            },
+            {
+                id: 7,
+                title: "El Último Faro de Bruma",
+                genre: "Misterio",
+                rating: "4.9",
+                difficulty: "Media",
+                duration: "9 Horas",
+                icon: "fa-tower-observation",
+                gradient: "from-violet-800/50 via-slate-900 to-abyss",
+                shortDesc: "Mantén encendida la luz del faro mientras extraños barcos fantasma se acercan a la costa.",
+                fullDesc: "Has aceptado el puesto de farero en una isla remota durante treinta días. Cada noche, la niebla trae consigo viajeros imposibles y mensajes por telégrafo desde el pasado. ¿Confiarás en las voces del mar o protegerás la torre?",
+                features: ["Tensión psicológica y narrativa epistolar", "Puzles mecánicos en la maquinaria del faro", "Diálogos con múltiples respuestas", "Alta rejugabilidad con 5 desenlaces"]
+            },
+            {
+                id: 8,
+                title: "Cenizas del Desierto Rojo",
+                genre: "Supervivencia",
+                rating: "4.5",
+                difficulty: "Alta",
+                duration: "19 Horas",
+                icon: "fa-sun",
+                gradient: "from-orange-700/50 via-amber-950 to-slate-900",
+                shortDesc: "Cruza un océano de dunas siguiendo las estrellas y antiguas caravanas perdidas.",
+                fullDesc: "En un mundo abrasado por dos soles, el agua es más valiosa que el oro. Lidera una pequeña caravana a través de ruinas enterradas, esquiva tormentas de arena colosales y descubre el oasis legendario mencionado en los pergaminos antiguos.",
+                features: ["Navegación astronómica nocturna", "Gestión de recursos y moral de caravana", "Ruinas procedurales llenas de reliquias", "Estética visual inspirada en acuarelas"]
+            }
+        ];
+
+        let currentGenre = "Todos";
+        let searchQuery = "";
+
+        // Renderizar tarjetas del catálogo
+        function renderCatalog() {
+            const grid = document.getElementById("gamesGrid");
+            const emptyState = document.getElementById("emptyState");
+            
+            const filtered = gamesCatalog.filter(game => {
+                const matchesGenre = currentGenre === "Todos" || game.genre === currentGenre;
+                const q = searchQuery.toLowerCase().trim();
+                const matchesSearch = !q || 
+                    game.title.toLowerCase().includes(q) || 
+                    game.genre.toLowerCase().includes(q) || 
+                    game.shortDesc.toLowerCase().includes(q);
+                return matchesGenre && matchesSearch;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = "";
+                emptyState.classList.remove("hidden");
+                return;
+            }
+
+            emptyState.classList.add("hidden");
+            grid.innerHTML = filtered.map(game => `
+                <article onclick="openGameModal(${game.id})" class="glass-card rounded-2xl overflow-hidden cursor-pointer group flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5">
+                    <div>
+                        <!-- Portada ilustrada con icono y gradiente -->
+                        <div class="h-40 bg-gradient-to-br ${game.gradient} relative p-5 flex flex-col justify-between overflow-hidden">
+                            <i class="fa-solid ${game.icon} absolute -right-4 -bottom-4 text-8xl text-white/10 group-hover:scale-110 group-hover:text-amber-400/15 transition-all duration-500"></i>
+                            
+                            <div class="flex justify-between items-center relative z-10">
+                                <span class="px-2.5 py-1 rounded-lg bg-abyss/80 backdrop-blur-md text-[11px] font-bold uppercase tracking-wider text-amber-300 border border-white/10">
+                                    ${game.genre}
+                                </span>
+                                <span class="px-2 py-1 rounded-lg bg-abyss/80 text-xs font-bold text-amber-400 flex items-center gap-1">
+                                    <i class="fa-solid fa-star text-[10px]"></i> ${game.rating}
+                                </span>
+                            </div>
+
+                            <div class="relative z-10 w-11 h-11 rounded-xl bg-abyss/70 border border-white/15 flex items-center justify-center text-amber-400 text-lg shadow-lg">
+                                <i class="fa-solid ${game.icon}"></i>
+                            </div>
+                        </div>
+
+                        <!-- Información -->
+                        <div class="p-5">
+                            <h3 class="font-epic text-lg font-bold text-white group-hover:text-amber-400 transition-colors line-clamp-1">
+                                ${game.title}
+                            </h3>
+                            <p class="text-slate-400 text-xs sm:text-sm mt-2 line-clamp-2 leading-relaxed">
+                                ${game.shortDesc}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Pie de tarjeta -->
+                    <div class="px-5 pb-5 pt-2 flex items-center justify-between border-t border-slate-800/70 text-xs">
+                        <span class="text-slate-400">
+                            Dificultad: <strong class="text-emerald-400">${game.difficulty}</strong>
+                        </span>
+                        <span class="text-amber-400 font-semibold group-hover:translate-x-1 transition-transform flex items-center gap-1">
+                            Detalles <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                        </span>
+                    </div>
+                </article>
+            `).join("");
+        }
+
+        // Eventos de filtros
+        document.querySelectorAll(".filter-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                document.querySelectorAll(".filter-btn").forEach(b => {
+                    b.classList.remove("bg-amber-500", "text-abyss", "shadow-md", "shadow-amber-500/20");
+                    b.classList.add("bg-slate-900", "text-slate-300", "border", "border-slate-700");
+                });
+                btn.classList.remove("bg-slate-900", "text-slate-300", "border", "border-slate-700");
+                btn.classList.add("bg-amber-500", "text-abyss", "shadow-md", "shadow-amber-500/20");
+                
+                currentGenre = btn.getAttribute("data-genre");
+                renderCatalog();
+            });
+        });
+
+        function quickFilter(genre) {
+            const btn = document.querySelector(`.filter-btn[data-genre="${genre}"]`);
+            if (btn) {
+                btn.click();
+                document.getElementById("catalogo").scrollIntoView({ behavior: "smooth" });
+            }
+        }
+
+        function resetFilters() {
+            searchQuery = "";
+            document.getElementById("searchInput").value = "";
+            document.getElementById("clearSearchBtn").classList.add("hidden");
+            const allBtn = document.querySelector('.filter-btn[data-genre="Todos"]');
+            if (allBtn) allBtn.click();
+        }
+
+        // Buscador en tiempo real
+        const searchInput = document.getElementById("searchInput");
+        const clearSearchBtn = document.getElementById("clearSearchBtn");
+
+        searchInput.addEventListener("input", (e) => {
+            searchQuery = e.target.value;
+            clearSearchBtn.classList.toggle("hidden", searchQuery.length === 0);
+            renderCatalog();
+        });
+
+        clearSearchBtn.addEventListener("click", () => {
+            searchInput.value = "";
+            searchQuery = "";
+            clearSearchBtn.classList.add("hidden");
+            renderCatalog();
+        });
+
+        // Menú móvil
+        document.getElementById("mobileMenuBtn").addEventListener("click", () => {
+            document.getElementById("mobileMenu").classList.toggle("hidden");
+        });
+
+        // Modal de Detalles
+        function openGameModal(id) {
+            const game = gamesCatalog.find(g => g.id === id);
+            if (!game) return;
+
+            document.getElementById("modalGenreBadge").textContent = game.genre;
+            document.getElementById("modalTitle").textContent = game.title;
+            document.getElementById("modalRating").textContent = game.rating;
+            document.getElementById("modalDifficulty").textContent = game.difficulty;
+            document.getElementById("modalDuration").textContent = game.duration;
+            document.getElementById("modalDescription").textContent = game.fullDesc;
+
+            const featuresList = document.getElementById("modalFeatures");
+            featuresList.innerHTML = game.features.map(f => `
+                <li class="flex items-start gap-2">
+                    <i class="fa-solid fa-check text-emerald-400 mt-1 text-xs"></i>
+                    <span>${f}</span>
+                </li>
+            `).join("");
+
+            document.getElementById("gameModal").classList.remove("hidden");
+        }
+
+        function openFeaturedModal() {
+            openGameModal(1);
+        }
+
+        function closeGameModal() {
+            document.getElementById("gameModal").classList.add("hidden");
+        }
+
+        // Cerrar modal al hacer clic fuera
+        document.getElementById("gameModal").addEventListener("click", (e) => {
+            if (e.target.id === "gameModal") closeGameModal();
+        });
+
+
+        /* ----------------------------------------------------------------------
+           2. MINI-JUEGO 1: RPG CONVERSACIONAL "LAS CRÓNICAS DE ELDORIA"
+        ---------------------------------------------------------------------- */
+        let rpgState = {
+            hp: 100,
+            inventory: ["Antorcha"],
+            currentNode: "start"
+        };
+
+        const rpgNodes = {
+            start: {
+                text: "Te encuentras ante las puertas cubiertas de musgo de la Ciudadela Sumergida de Eldoria. Un viento helado susurra entre las estatuas rotas. A tu izquierda brilla una grieta en el muro; al frente se alza el portón principal con un acertijo rúnico.",
+                choices: [
+                    { text: "Inspeccionar la grieta iluminada en el muro", next: "crevice" },
+                    { text: "Intentar abrir el portón principal por la fuerza", next: "gate_force" },
+                    { text: "Examinar las runas del portón con tu Antorcha", next: "gate_runes" }
+                ]
+            },
+            crevice: {
+                text: "Te deslizas por la estrecha grieta y descubres un antiguo campamento de exploradores. Entre los restos encuentras una Poción de Vitalidad y una Llave de Plata oxidada, pero unas esporas venenosas te hieren ligeramente (-15 Salud).",
+                effect: (state) => {
+                    state.hp = Math.max(0, state.hp - 15);
+                    if (!state.inventory.includes("Llave de Plata")) state.inventory.push("Llave de Plata");
+                    if (!state.inventory.includes("Poción")) state.inventory.push("Poción");
+                },
+                choices: [
+                    { text: "Avanzar hacia el Salón del Trono", next: "throne_hall" },
+                    { text: "Beber la Poción para recuperar salud", next: "drink_potion", condition: (s) => s.inventory.includes("Poción") }
+                ]
+            },
+            drink_potion: {
+                text: "Bebes el elixir esmeralda. Una calidez reconfortante recorre tus venas y tus heridas sanan (+35 Salud). Ahora estás listo para adentrarte en las profundidades.",
+                effect: (state) => {
+                    state.hp = Math.min(100, state.hp + 35);
+                    state.inventory = state.inventory.filter(i => i !== "Poción");
+                },
+                choices: [
+                    { text: "Continuar hacia el Salón del Trono", next: "throne_hall" }
+                ]
+            },
+            gate_force: {
+                text: "Empujas con todas tus fuerzas. El mecanismo cede de golpe y una trampa de dardos se dispara desde las columnas (-45 Salud). Logras entrar malherido al vestíbulo oscuro.",
+                effect: (state) => {
+                    state.hp = Math.max(0, state.hp - 45);
+                },
+                choices: [
+                    { text: "Avanzar cojeando hacia el Salón del Trono", next: "throne_hall" }
+                ]
+            },
+            gate_runes: {
+                text: "Al acercar la antorcha, las runas cobran vida con fuego dorado: 'Solo quien ofrece conocimiento cruza ileso'. Recitas el antiguo juramento y el portón se abre silenciosamente, otorgándote el Amuleto Sabio.",
+                effect: (state) => {
+                    if (!state.inventory.includes("Amuleto Sabio")) state.inventory.push("Amuleto Sabio");
+                },
+                choices: [
+                    { text: "Entrar con orgullo al Salón del Trono", next: "throne_hall" }
+                ]
+            },
+            throne_hall: {
+                text: "En el centro del Salón del Trono flota el Corazón de Eldoria, custodiado por un Gólem de Cristal. El gigante despierta y alza su maza rúnica bloqueando el altar.",
+                choices: [
+                    { text: "Mostrar el Amuleto Sabio al Gólem", next: "ending_wisdom", condition: (s) => s.inventory.includes("Amuleto Sabio") },
+                    { text: "Usar la Llave de Plata en el pedestal lateral", next: "ending_secret", condition: (s) => s.inventory.includes("Llave de Plata") },
+                    { text: "Lanzarte al ataque directo contra el Gólem", next: "battle_golem" }
+                ]
+            },
+            battle_golem: {
+                text: "Esquivas un golpe devastador pero la onda expansiva te golpea de lleno (-50 Salud). Si sobrevives, logras golpear su núcleo de cristal y hacerlo añicos.",
+                effect: (state) => {
+                    state.hp = Math.max(0, state.hp - 50);
+                },
+                choices: [
+                    { text: "Reclamar el Corazón de Eldoria", next: "ending_warrior", condition: (s) => s.hp > 0 },
+                    { text: "Caer derrotado ante el guardián...", next: "ending_defeat", condition: (s) => s.hp <= 0 }
+                ]
+            },
+            ending_wisdom: {
+                ending: { title: "FINAL LEGENDARIO: GUARDIÁN DE LA SABIDURÍA", color: "bg-amber-500/20 text-amber-300 border border-amber-500/40" },
+                text: "El Gólem reconoce el Amuleto Sabio y se arrodilla ante ti. El Corazón de Eldoria desciende suavemente a tus manos sin derramar una sola gota de sangre. ¡Has restaurado la paz del reino!",
+                choices: [
+                    { text: "Jugar otra ruta", next: "RESTART" }
+                ]
+            },
+            ending_secret: {
+                ending: { title: "FINAL SECRETO: EL TESORO OCULTO", color: "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40" },
+                text: "La Llave de Plata abre una cámara secreta bajo el trono. Mientras el Gólem queda desactivado, descubres tanto el Corazón de Eldoria como los archivos perdidos de los reyes antiguos. ¡Victoria magistral!",
+                choices: [
+                    { text: "Explorar otro desenlace", next: "RESTART" }
+                ]
+            },
+            ending_warrior: {
+                ending: { title: "FINAL HEROICO: CONQUISTADOR DE ELDORIA", color: "bg-purple-500/20 text-purple-300 border border-purple-500/40" },
+                text: "Exhausto y cubierto de polvo de cristal, tomas el Corazón de Eldoria. Tu valentía será cantada por los bardos durante siglos, aunque tus cicatrices recordarán el precio de la gloria.",
+                choices: [
+                    { text: "Volver a intentarlo", next: "RESTART" }
+                ]
+            },
+            ending_defeat: {
+                ending: { title: "FIN DE LA TRAVESÍA: CAÍDO EN LAS SOMBRAS", color: "bg-rose-500/20 text-rose-300 border border-rose-500/40" },
+                text: "Tus fuerzas se agotan en el frío suelo de piedra antes de alcanzar la reliquia. La ciudadela vuelve a sumirse en el silencio esperando a un nuevo explorador.",
+                choices: [
+                    { text: "Intentar de nuevo", next: "RESTART" }
+                ]
+            }
+        };
+
+        function updateRPGUI() {
+            const node = rpgNodes[rpgState.currentNode];
+            
+            // Actualizar barras de salud e inventario
+            document.getElementById("rpgHpText").textContent = `${rpgState.hp} / 100`;
+            document.getElementById("rpgHpBar").style.width = `${rpgState.hp}%`;
+            
+            const invContainer = document.getElementById("rpgInventory");
+            invContainer.innerHTML = rpgState.inventory.length > 0 
+                ? rpgState.inventory.map(item => `<span class="px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/30 text-amber-300 font-medium">${item}</span>`).join("")
+                : `<span class="text-slate-500 italic">Vacío</span>`;
+
+            // Mostrar insignia si es un final
+            const badge = document.getElementById("rpgEndingBadge");
+            if (node.ending) {
+                badge.textContent = node.ending.title;
+                badge.className = `mb-2 inline-block w-fit px-2.5 py-0.5 rounded text-xs font-bold uppercase tracking-wider ${node.ending.color}`;
+                badge.classList.remove("hidden");
+            } else {
+                badge.classList.add("hidden");
+            }
+
+            // Texto narrativo
+            document.getElementById("rpgStoryText").textContent = node.text;
+
+            // Opciones
+            const choicesContainer = document.getElementById("rpgChoices");
+            choicesContainer.innerHTML = "";
+
+            node.choices.forEach(choice => {
+                if (choice.condition && !choice.condition(rpgState)) return;
+
+                const btn = document.createElement("button");
+                btn.className = "w-full text-left px-4 py-3 rounded-xl bg-slate-800/90 hover:bg-purple-900/50 border border-slate-700 hover:border-amber-400/60 text-sm text-slate-200 hover:text-white transition-all flex items-center justify-between group";
+                btn.innerHTML = `
+                    <span>${choice.text}</span>
+                    <i class="fa-solid fa-chevron-right text-xs text-slate-500 group-hover:text-amber-400 group-hover:translate-x-1 transition-all"></i>
+                `;
+                btn.onclick = () => selectRPGChoice(choice.next);
+                choicesContainer.appendChild(btn);
+            });
+        }
+
+        function selectRPGChoice(nextNodeKey) {
+            if (nextNodeKey === "RESTART") {
+                resetRPG();
+                return;
+            }
+            rpgState.currentNode = nextNodeKey;
+            const nextNode = rpgNodes[nextNodeKey];
+            if (nextNode.effect) {
+                nextNode.effect(rpgState);
+            }
+            updateRPGUI();
+        }
+
+        function resetRPG() {
+            rpgState = {
+                hp: 100,
+                inventory: ["Antorcha"],
+                currentNode: "start"
+            };
+            updateRPGUI();
+        }
+
+
+        /* ----------------------------------------------------------------------
+           3. MINI-JUEGO 2: EXPLORACIÓN DE MAZMORRAS EN CANVAS 2D
+        ---------------------------------------------------------------------- */
+        const canvas = document.getElementById("dungeonCanvas");
+        const ctx = canvas.getContext("2d");
+        const COLS = 16;
+        const ROWS = 10;
+
+        let dungeonLevel = 1;
+        let player = { x: 1, y: 1 };
+        let walls = [];
+        let gems = [];
+        let traps = [];
+        let collectedGems = 0;
+        let totalGems = 5;
+        let isGameOver = false;
+        let isLevelWon = false;
+        let animFrameId = null;
+        let pulsePhase = 0;
+
+        // Ajustar tamaño responsivo del Canvas
+        function resizeCanvas() {
+            const container = document.getElementById("canvasContainer");
+            if (!container) return;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            drawDungeon();
+        }
+
+        // Generar nivel procedural validado
+        function initDungeonLevel(lvl) {
+            dungeonLevel = lvl;
+            isGameOver = false;
+            isLevelWon = false;
+            collectedGems = 0;
+            totalGems = 4 + lvl; // Más gemas en niveles altos
+            player = { x: 1, y: 1 };
+            walls = [];
+            gems = [];
+            traps = [];
+
+            document.getElementById("dungeonOverlay").classList.add("hidden");
+            document.getElementById("dungeonLevel").textContent = dungeonLevel;
+            document.getElementById("dungeonScore").textContent = "0";
+            document.getElementById("dungeonTotalGems").textContent = totalGems;
+            document.getElementById("dungeonStatusMsg").textContent = "¡Recoge todas las gemas doradas!";
+            document.getElementById("dungeonStatusMsg").className = "text-emerald-400 font-medium";
+
+            // Muros perimetrales
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    if (r === 0 || r === ROWS - 1 || c === 0 || c === COLS - 1) {
+                        walls.push({ x: c, y: r });
+                    }
+                }
+            }
+
+            // Obstáculos interiores dispersos (dejando caminos libres)
+            const interiorWallCount = Math.min(18, 8 + lvl * 2);
+            let attempts = 0;
+            while (walls.length < (COLS * 2 + (ROWS - 2) * 2) + interiorWallCount && attempts < 200) {
+                attempts++;
+                const wx = Math.floor(Math.random() * (COLS - 4)) + 2;
+                const wy = Math.floor(Math.random() * (ROWS - 4)) + 2;
+                // Evitar bloquear inicio y evitar agrupar demasiado
+                if ((wx <= 2 && wy <= 2) || isOccupied(wx, wy)) continue;
+                // Evitar encerrar celdas adyacentes
+                if (isOccupied(wx + 1, wy) || isOccupied(wx - 1, wy) || isOccupied(wx, wy + 1) || isOccupied(wx, wy - 1)) continue;
+                walls.push({ x: wx, y: wy });
+            }
+
+            // Colocar Gemas
+            attempts = 0;
+            while (gems.length < totalGems && attempts < 300) {
+                attempts++;
+                const gx = Math.floor(Math.random() * (COLS - 2)) + 1;
+                const gy = Math.floor(Math.random() * (ROWS - 2)) + 1;
+                if ((gx === player.x && gy === player.y) || isOccupied(gx, gy)) continue;
+                gems.push({ x: gx, y: gy });
+            }
+            totalGems = gems.length;
+            document.getElementById("dungeonTotalGems").textContent = totalGems;
+
+            // Colocar Trampas de Fuego/Pinchos
+            const trapCount = Math.min(12, 3 + lvl * 2);
+            attempts = 0;
+            while (traps.length < trapCount && attempts < 300) {
+                attempts++;
+                const tx = Math.floor(Math.random() * (COLS - 2)) + 1;
+                const ty = Math.floor(Math.random() * (ROWS - 2)) + 1;
+                // Mantener zona segura alrededor del jugador al inicio
+                if (Math.abs(tx - player.x) <= 1 && Math.abs(ty - player.y) <= 1) continue;
+                if (isOccupied(tx, ty)) continue;
+                traps.push({ x: tx, y: ty });
+            }
+
+            drawDungeon();
+        }
+
+        function isOccupied(x, y) {
+            return walls.some(w => w.x === x && w.y === y) ||
+                   gems.some(g => g.x === x && g.y === y) ||
+                   traps.some(t => t.x === x && t.y === y);
+        }
+
+        function movePlayer(dx, dy) {
+            if (isGameOver || isLevelWon) return;
+
+            const nx = player.x + dx;
+            const ny = player.y + dy;
+
+            // Comprobar colisión con muros
+            if (walls.some(w => w.x === nx && w.y === ny)) {
+                return;
+            }
+
+            player.x = nx;
+            player.y = ny;
+
+            // Comprobar colisión con trampas
+            if (traps.some(t => t.x === player.x && t.y === player.y)) {
+                isGameOver = true;
+                showDungeonOverlay(
+                    "💀",
+                    "¡Caíste en una Trampa!",
+                    "Las runas de fuego consumieron tu paso. Intenta cruzar la cámara nuevamente.",
+                    "Reintentar Nivel"
+                );
+                drawDungeon();
+                return;
+            }
+
+            // Comprobar recolección de gemas
+            const gemIndex = gems.findIndex(g => g.x === player.x && g.y === player.y);
+            if (gemIndex !== -1) {
+                gems.splice(gemIndex, 1);
+                collectedGems++;
+                document.getElementById("dungeonScore").textContent = collectedGems;
+
+                if (collectedGems >= totalGems) {
+                    isLevelWon = true;
+                    showDungeonOverlay(
+                        "🏆",
+                        `¡Cámara ${dungeonLevel} Despejada!`,
+                        "Has reunido todos los cristales ancestrales. ¿Listo para descender más profundo?",
+                        "Siguiente Cámara"
+                    );
+                }
+            }
+
+            drawDungeon();
+        }
+
+        function showDungeonOverlay(icon, title, desc, btnText) {
+            document.getElementById("dungeonOverlayIcon").textContent = icon;
+            document.getElementById("dungeonOverlayTitle").textContent = title;
+            document.getElementById("dungeonOverlayDesc").textContent = desc;
+            document.getElementById("dungeonOverlayBtn").textContent = btnText;
+            document.getElementById("dungeonOverlay").classList.remove("hidden");
+        }
+
+        function nextOrRestartDungeon() {
+            if (isLevelWon) {
+                initDungeonLevel(dungeonLevel + 1);
+            } else {
+                initDungeonLevel(dungeonLevel);
+            }
+        }
+
+        // Dibujar escena en Canvas 2D
+        function drawDungeon() {
+            if (!ctx || canvas.width === 0) return;
+
+            const cellW = canvas.width / COLS;
+            const cellH = canvas.height / ROWS;
+
+            // Fondo de losa oscura
+            ctx.fillStyle = "#090d18";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Cuadrícula sutil de baldosas
+            ctx.strokeStyle = "rgba(148, 163, 184, 0.06)";
+            ctx.lineWidth = 1;
+            for (let c = 0; c <= COLS; c++) {
+                ctx.beginPath();
+                ctx.moveTo(c * cellW, 0);
+                ctx.lineTo(c * cellW, canvas.height);
+                ctx.stroke();
+            }
+            for (let r = 0; r <= ROWS; r++) {
+                ctx.beginPath();
+                ctx.moveTo(0, r * cellH);
+                ctx.lineTo(canvas.width, r * cellH);
+                ctx.stroke();
+            }
+
+            // Dibujar Muros de Piedra Mística
+            walls.forEach(w => {
+                ctx.fillStyle = "#1e293b";
+                ctx.fillRect(w.x * cellW + 1, w.y * cellH + 1, cellW - 2, cellH - 2);
+                ctx.strokeStyle = "#334155";
+                ctx.strokeRect(w.x * cellW + 1.5, w.y * cellH + 1.5, cellW - 3, cellH - 3);
+            });
+
+            // Dibujar Trampas Carmesí
+            traps.forEach(t => {
+                const cx = (t.x + 0.5) * cellW;
+                const cy = (t.y + 0.5) * cellH;
+                const radius = Math.min(cellW, cellH) * 0.3;
+
+                ctx.save();
+                ctx.fillStyle = "rgba(244, 63, 94, 0.25)";
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius * 1.25, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = "#f43f5e";
+                ctx.beginPath();
+                ctx.moveTo(cx, cy - radius);
+                ctx.lineTo(cx + radius, cy + radius * 0.8);
+                ctx.lineTo(cx - radius, cy + radius * 0.8);
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+            });
+
+            // Dibujar Gemas Doradas con brillo pulsante
+            const glowScale = 1 + Math.sin(pulsePhase) * 0.12;
+            gems.forEach(g => {
+                const cx = (g.x + 0.5) * cellW;
+                const cy = (g.y + 0.5) * cellH;
+                const r = Math.min(cellW, cellH) * 0.28 * glowScale;
+
+                ctx.save();
+                ctx.shadowColor = "#fbbf24";
+                ctx.shadowBlur = 12;
+                ctx.fillStyle = "#fbbf24";
+                ctx.beginPath();
+                ctx.moveTo(cx, cy - r);
+                ctx.lineTo(cx + r * 0.8, cy);
+                ctx.lineTo(cx, cy + r);
+                ctx.lineTo(cx - r * 0.8, cy);
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+            });
+
+            // Dibujar al Aventurero (Jugador) con aura esmeralda
+            const px = (player.x + 0.5) * cellW;
+            const py = (player.y + 0.5) * cellH;
+            const pr = Math.min(cellW, cellH) * 0.33;
+
+            ctx.save();
+            // Aura de antorcha
+            const aura = ctx.createRadialGradient(px, py, pr * 0.2, px, py, pr * 2.8);
+            aura.addColorStop(0, "rgba(52, 211, 153, 0.35)");
+            aura.addColorStop(1, "rgba(52, 211, 153, 0)");
+            ctx.fillStyle = aura;
+            ctx.beginPath();
+            ctx.arc(px, py, pr * 2.8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Cuerpo del explorador
+            ctx.fillStyle = "#10b981";
+            ctx.beginPath();
+            ctx.arc(px, py, pr, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = "#ecfdf5";
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // Bucle de animación suave para el brillo de gemas
+        function dungeonLoop() {
+            pulsePhase += 0.08;
+            drawDungeon();
+            animFrameId = requestAnimationFrame(dungeonLoop);
+        }
+
+        // Controles de Teclado (WASD y Flechas)
+        window.addEventListener("keydown", (e) => {
+            // Evitar mover si el usuario está escribiendo en el buscador
+            if (document.activeElement === searchInput) return;
+
+            const key = e.key.toLowerCase();
+            if (["arrowup", "arrowdown", "arrowleft", "arrowright", "w", "a", "s", "d"].includes(key)) {
+                e.preventDefault();
+                if (key === "arrowup" || key === "w") movePlayer(0, -1);
+                if (key === "arrowdown" || key === "s") movePlayer(0, 1);
+                if (key === "arrowleft" || key === "a") movePlayer(-1, 0);
+                if (key === "arrowright" || key === "d") movePlayer(1, 0);
+            }
+        });
+
+        // Gestos táctiles (Swipe) directamente sobre el Canvas
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        canvas.addEventListener("touchstart", (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
+        }, { passive: true });
+
+        canvas.addEventListener("touchend", (e) => {
+            const dx = e.changedTouches[0].screenX - touchStartX;
+            const dy = e.changedTouches[0].screenY - touchStartY;
+            if (Math.abs(dx) < 20 && Math.abs(dy) < 20) return;
+
+            if (Math.abs(dx) > Math.abs(dy)) {
+                movePlayer(dx > 0 ? 1 : -1, 0);
+            } else {
+                movePlayer(0, dy > 0 ? 1 : -1);
+            }
+        }, { passive: true });
+
+        // Inicialización al cargar la ventana
+        window.addEventListener("resize", resizeCanvas);
+        window.onload = function() {
+            renderCatalog();
+            resetRPG();
+            initDungeonLevel(1);
+            resizeCanvas();
+            dungeonLoop();
+        };
+    </script>
+</body>
+</html>
